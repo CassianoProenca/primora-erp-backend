@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: Primora
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/primora}
+    username: ${DATABASE_USERNAME:primora}
+    password: ${DATABASE_PASSWORD:primora}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+primora:
+  onboarding:
+    token-ttl-hours: ${ONBOARDING_TOKEN_TTL_HOURS:24}
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-secret-change-me}
+      issuer: ${JWT_ISSUER:primora}
+      access-token-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:15}
+      refresh-token-ttl-days: ${JWT_REFRESH_TTL_DAYS:30}
+    password-reset:
+      token-ttl-minutes: ${PASSWORD_RESET_TTL_MINUTES:60}
