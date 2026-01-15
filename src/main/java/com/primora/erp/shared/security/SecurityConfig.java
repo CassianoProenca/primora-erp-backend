@@ -4,7 +4,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.primora.erp.onboarding.infra.OnboardingGateFilter;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,7 +29,6 @@ public class SecurityConfig {
                 .addFilterAfter(new TenantContextFilter(), JwtAuthenticationFilter.class)
                 .addFilterAfter(new SaasAccessFilter(), TenantContextFilter.class)
                 .addFilterAfter(onboardingGateFilter, SaasAccessFilter.class)
-                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 

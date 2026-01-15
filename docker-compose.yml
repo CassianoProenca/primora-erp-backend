@@ -21,11 +21,11 @@ services:
     container_name: primora-api
     environment:
       DATABASE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-primora}
-      DATABASE_USERNAME: ${POSTGRES_USER:-primora}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-primora}
+      DATABASE_USERNAME: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       SERVER_PORT: ${API_PORT:-8080}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
-      JWT_ISSUER: ${JWT_ISSUER:-primora}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
       JWT_ACCESS_TTL_MINUTES: ${JWT_ACCESS_TTL_MINUTES:-15}
       JWT_REFRESH_TTL_DAYS: ${JWT_REFRESH_TTL_DAYS:-30}
     ports:
