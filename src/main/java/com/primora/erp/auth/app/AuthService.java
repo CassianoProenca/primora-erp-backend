@@ -14,6 +14,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final String LOGIN_SUCCESS = "LOGIN_SUCCESS";
     private static final String LOGOUT_SUCCESS = "LOGOUT_SUCCESS";
 
@@ -46,14 +49,20 @@ public class AuthService {
 
     @Transactional
     public AuthTokens login(String email, String rawPassword, String ip, String userAgent) {
+        log.debug("Attempting login for user: {}", email);
         User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(() -> {
+                    log.warn("Login failed: user not found - {}", email);
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+                });
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            log.warn("Login failed: invalid password for user - {}", email);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
+            log.warn("Login failed: user {} is not active (status: {})", email, user.getStatus());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User is not active");
         }
 
@@ -68,22 +77,30 @@ public class AuthService {
         refreshTokenRepository.save(refreshToken);
         auditService.log(LOGIN_SUCCESS, user.getId(), companyId, "{}");
 
+        log.info("User {} logged in successfully from IP {}", email, ip);
         return new AuthTokens(accessToken, refreshTokenValue, user.getId(), user.getUserType(), companyId);
     }
 
     @Transactional
     public AuthTokens refresh(String refreshTokenValue, String ip, String userAgent) {
+        log.debug("Attempting token refresh from IP: {}", ip);
         String tokenHash = TokenHasher.sha256(refreshTokenValue);
         RefreshToken storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+                .orElseThrow(() -> {
+                    log.warn("Refresh failed: token not found from IP {}", ip);
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+                });
 
         Instant now = Instant.now();
         if (storedToken.isRevoked() || storedToken.isExpired(now)) {
+            log.warn("Refresh failed: token is {} from IP {}", 
+                    storedToken.isRevoked() ? "revoked" : "expired", ip);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
 
         User user = storedToken.getUser();
         if (user.getStatus() != UserStatus.ACTIVE) {
+            log.warn("Refresh failed: user {} is not active", user.getEmail());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User is not active");
         }
 
@@ -96,6 +113,7 @@ public class AuthService {
         refreshTokenRepository.save(storedToken);
         refreshTokenRepository.save(newToken);
 
+        log.debug("Token refreshed successfully for user {}", user.getEmail());
         return new AuthTokens(accessToken, newRefreshTokenValue, user.getId(), user.getUserType(), companyId);
     }
 

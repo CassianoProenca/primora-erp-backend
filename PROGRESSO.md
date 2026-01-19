@@ -66,12 +66,13 @@ Cada sessao representa um bloco de trabalho coeso e finalizavel no mesmo dia.
 - Colaboradores
 - Contratos e beneficios
 
-## Sessao 11 — Contratos (MVP)
+## Sessao 11 — Contratos (MVP) (feito)
 - Cadastro de contratos
 - Alertas de vencimento
 - Documentos anexos
 
-## Sessao 12 — Hardening e qualidade
-- Testes essenciais por modulo
-- Ajustes de performance basicos
-- Revisao de logs, auditoria e seguranca
+## Sessao 12 — Hardening e qualidade (feito)
+- Testes unitarios para todos os modulos (feito)
+- Revisao de auditoria e logs (feito)
+- Padronizacao de logs com SLF4J (feito)
+- Verificacao de performance e indices (feito)
